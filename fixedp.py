@@ -7,6 +7,31 @@ from instagrapi import Client
 
 app = Flask(__name__)
 app.secret_key = os.environ.get("PANEL_SECRET_KEY", "SINISTERS-SX7-PANEL-SECRET")
+# SELF PING
+SELF_URL = os.getenv("SELF_URL", "").strip()
+SELF_PING_INTERVAL = int(os.getenv("SELF_PING_INTERVAL", "300"))
+
+def self_ping():
+    while True:
+        try:
+            if SELF_URL:
+                req = urllib.request.Request(
+                    SELF_URL,
+                    headers={"User-Agent": "Mozilla/5.0 SelfPing"}
+                )
+                with urllib.request.urlopen(req, timeout=20) as r:
+                    print(f"SELF PING: {r.status}", flush=True)
+        except Exception as e:
+            print(f"SELF PING ERROR: {e}", flush=True)
+
+        time.sleep(max(60, SELF_PING_INTERVAL))
+
+if SELF_URL:
+    threading.Thread(
+        target=self_ping,
+        daemon=True,
+        name="self-ping"
+    ).start()
 
 PANEL_USERNAME = "SINISTERS"
 PANEL_PASSWORD = "AYAN@2003"
